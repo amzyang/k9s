@@ -76,10 +76,11 @@ const (
 	KeyX
 	KeyY
 	KeyZ
-	KeyHelp  = 63
-	KeySlash = 47
-	KeyColon = 58
-	KeySpace = 32
+	KeyHelp      = 63
+	KeySlash     = 47
+	KeyColon     = 58
+	KeySemiColon = 59
+	KeySpace     = 32
 )
 
 // Define Shift Keys.
