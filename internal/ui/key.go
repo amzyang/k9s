@@ -79,6 +79,7 @@ const (
 	KeyHelp         = 63
 	KeySlash        = 47
 	KeyColon        = 58
+	KeySemiColon    = 59
 	KeySpace        = 32
 	KeyDash         = 45
 	KeyLeftBracket  = 91
