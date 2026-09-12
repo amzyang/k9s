@@ -106,3 +106,11 @@ dao（informer 缓存 List/Get）→ model.Table（轮询 + TableListener 观察
 - 版本号（`cmd.version`/`cmd.commit`/`cmd.date`）只在 `make build`/goreleaser 时经 ldflags 注入，代码里默认为 `dev`，不要硬编码。
 - CI 以 GitHub Actions（`.github/workflows/`）为准；`.travis.yml` 和 `.semaphore/` 已废弃。
 - `.golangci.yml` 中有大量指向不存在路径的排除规则（借自 golangci-lint 自身仓库），是无害噪音，不要顺手"修复"。
+
+## 发版（fork 专属）
+
+- 触发方式：推送形如 `v<上游版本>-amz.N` 的 tag（如 `v0.51.0-amz.1`），`.github/workflows/release.yml` 只匹配 `v*-amz.*`，误推上游 tag 不会触发。
+- 发版配置在 `.goreleaser.fork.yaml`，与上游 `.goreleaser.yml` 分离，避免同步 upstream 时冲突；只构建 darwin/linux × amd64/arm64。
+- formula 由 goreleaser 写入 amzyang/homebrew-tap 的 `Formula/k9s.rb`，仓库需配置 secret `HOMEBREW_TAP_GITHUB_TOKEN`（可写 homebrew-tap 的 PAT）。
+- 安装：`brew install amzyang/tap/k9s`。
+- 本地干跑：`goreleaser release --snapshot --clean --skip=publish --config .goreleaser.fork.yaml`。

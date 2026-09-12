@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# fork 专用发版配置；上游 .goreleaser.yml 保持原样以免同步冲突，CI 用 --config 指定本文件。
+version: 2
+project_name: k9s
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: k9s
+    binary: k9s
+    env: [CGO_ENABLED=0]
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    tags: [netgo]
+    ldflags:
+      - -s -w
+      - -X github.com/derailed/k9s/cmd.version=v{{ .Version }}
+      - -X github.com/derailed/k9s/cmd.commit={{ .Commit }}
+      - -X github.com/derailed/k9s/cmd.date={{ .Date }}
+
+archives:
+  - id: k9s
+    ids: [k9s]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    files: [README.md, LICENSE]
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  # origin 上没有上游 tag，首个 fork tag 的 previous tag 为空，goreleaser 会把整段上游历史塞进 release notes
+  disable: true
+
+# brews 自 goreleaser v2.16 标记 deprecated（v3 才移除），但 tap 内其余工具均为 Formula，
+# 沿用以保持 tap 布局一致；迁移 homebrew_casks 时需同步处理 tap 的 tap_migrations.json。
+brews:
+  - name: k9s
+    ids: [k9s]
+    repository:
+      owner: amzyang
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/amzyang/k9s"
+    description: "Kubernetes CLI To Manage Your Clusters In Style! (amzyang fork)"
+    license: "Apache-2.0"
+    install: |
+      bin.install "k9s"
+      generate_completions_from_executable(bin/"k9s", "completion")
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/k9s version -s")
+
+release:
+  github:
+    owner: amzyang
+    name: k9s
+  draft: false
+  # tag 带 -amz.N 预发布后缀，auto 会把每次发版都标成 pre-release；fork 版本即正式版
+  prerelease: false
